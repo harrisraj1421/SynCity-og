@@ -1,0 +1,5 @@
+{
+  "name": "CampusSphere",
+  "description": "A unified web platform that connects multiple campuses, enabling students to share academic resources, manage library transactions, pre-order canteen meals, and handle payments online. It features an AI-powered Study Buddy to enhance learning.",
+  "requestFramePermissions": []
+}
