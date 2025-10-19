@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import * as api from '../services/mockApi';
+// Fix: Corrected import from mockApi to apiService
+import * as api from '../services/apiService';
 import { AcademicResource } from '../types';
 import Spinner from '../components/common/Spinner';
 import { DocumentTextIcon, ArchiveBoxIcon, BeakerIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';

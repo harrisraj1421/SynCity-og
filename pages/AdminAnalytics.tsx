@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import * as api from '../services/mockApi';
+import * as api from '../services/apiService';
 import { AdminStat, ChartData } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
@@ -24,9 +23,9 @@ const AdminAnalytics: React.FC = () => {
     const [canteenData, setCanteenData] = useState<ChartData[]>([]);
 
     useEffect(() => {
-        api.getAdminStats().then(setStats);
-        api.getLibraryActivity().then(setLibraryData);
-        api.getCanteenSales().then(setCanteenData);
+        api.getAdminDashboardStats().then(setStats);
+        api.getAdminLibraryActivity().then(setLibraryData);
+        api.getAdminCanteenSales().then(setCanteenData);
     }, []);
 
     return (
@@ -61,7 +60,8 @@ const AdminAnalytics: React.FC = () => {
                                 fill="#8884d8"
                                 dataKey="value"
                                 nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                // Fix: Ensure 'percent' property is a number before calculation to prevent type errors.
+                                label={({ name, percent }) => `${name} ${((typeof percent === 'number' ? percent : 0) * 100).toFixed(0)}%`}
                             >
                                 {canteenData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

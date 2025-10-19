@@ -1,9 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import * as api from '../services/mockApi';
+import * as api from '../services/apiService';
 import { Book, CanteenOrder, Fine, LibraryTransaction, OrderStatus } from '../types';
 import { BookOpenIcon, ClockIcon, CurrencyDollarIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
+
+interface DashboardProps {
+    userId: string;
+}
 
 const StatCard: React.FC<{ icon: React.ElementType, title: string, value: string | number, color: string }> = ({ icon: Icon, title, value, color }) => (
     <div className="bg-dark-card p-6 rounded-xl flex items-center space-x-4 border border-dark-border">
@@ -17,17 +21,16 @@ const StatCard: React.FC<{ icon: React.ElementType, title: string, value: string
     </div>
 );
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
     const [myBooks, setMyBooks] = useState<{ book: Book; transaction: LibraryTransaction }[]>([]);
     const [myOrders, setMyOrders] = useState<CanteenOrder[]>([]);
     const [myFines, setMyFines] = useState<Fine[]>([]);
 
     useEffect(() => {
-        // Assuming current user ID is 'u1'
-        api.getMyBooks('u1').then(setMyBooks);
-        api.getMyOrders('u1').then(setMyOrders);
-        api.getMyFines('u1').then(setMyFines);
-    }, []);
+        api.getIssuedBooks(userId).then(setMyBooks);
+        api.getUserOrders(userId).then(setMyOrders);
+        api.getUserFines(userId).then(setMyFines);
+    }, [userId]);
 
     const overdueBooks = myBooks.filter(item => new Date(item.transaction.dueDate) < new Date());
     const activeOrders = myOrders.filter(o => o.status === OrderStatus.PREPARING || o.status === OrderStatus.READY);

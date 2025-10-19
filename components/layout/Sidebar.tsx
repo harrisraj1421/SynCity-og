@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { HomeIcon, BookOpenIcon, ShoppingCartIcon, AcademicCapIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 
 interface SidebarProps {
-    userRole: 'student' | 'admin';
+    userRole: 'student' | 'admin' | 'faculty';
 }
 
 const navLinks = [

@@ -1,11 +1,25 @@
-
 export interface User {
   id: string;
   name: string;
   avatarUrl: string;
   campus: string;
-  role: 'student' | 'admin';
+  role: 'student' | 'faculty' | 'admin';
 }
+
+export interface Wallet {
+    userId: string;
+    balance: number;
+}
+
+export interface WalletTransaction {
+    id: string;
+    userId: string;
+    amount: number;
+    type: 'credit' | 'debit';
+    description: string;
+    date: string;
+}
+
 
 export interface Book {
   id: string;
@@ -86,4 +100,6 @@ export interface AdminStat {
 export interface ChartData {
     name: string;
     value: number;
+    // Fix: Add index signature for compatibility with recharts library
+    [key: string]: any;
 }

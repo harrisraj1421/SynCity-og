@@ -1,9 +1,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import * as api from '../services/mockApi';
+import * as api from '../services/apiService';
 import { Book, LibraryTransaction } from '../types';
 import Spinner from '../components/common/Spinner';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+
+interface LibraryProps {
+    userId: string;
+}
 
 const BookCard: React.FC<{ book: Book }> = ({ book }) => (
     <div className="bg-dark-card border border-dark-border rounded-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
@@ -36,27 +40,27 @@ const MyBookCard: React.FC<{ item: { book: Book; transaction: LibraryTransaction
 );
 
 
-const Library: React.FC = () => {
+const Library: React.FC<LibraryProps> = ({ userId }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<Book[]>([]);
     const [myBooks, setMyBooks] = useState<{ book: Book; transaction: LibraryTransaction }[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        api.getMyBooks('u1').then(setMyBooks);
-        // Initial search to show some books
-        handleSearch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    
     const handleSearch = useCallback(() => {
         setIsLoading(true);
-        api.searchBooks(searchQuery).then(results => {
+        api.getBooks(searchQuery).then(results => {
             setSearchResults(results);
             setIsLoading(false);
         });
     }, [searchQuery]);
 
+    useEffect(() => {
+        api.getIssuedBooks(userId).then(setMyBooks);
+        // Initial search to show some books
+        handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId]);
+    
     const onSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handleSearch();

@@ -1,9 +1,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import * as api from '../services/mockApi';
+import * as api from '../services/apiService';
 import { CanteenItem, CanteenOrder, OrderItem, OrderStatus } from '../types';
 import Spinner from '../components/common/Spinner';
 import { StarIcon, PlusIcon, MinusIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import QRCodeModal from '../components/common/QRCodeModal';
+
+interface CanteenProps {
+    userId: string;
+}
 
 const MenuItemCard: React.FC<{ item: CanteenItem; onAddToCart: (item: CanteenItem) => void }> = ({ item, onAddToCart }) => (
     <div className="bg-dark-card border border-dark-border rounded-xl overflow-hidden group">
@@ -27,7 +32,7 @@ const MenuItemCard: React.FC<{ item: CanteenItem; onAddToCart: (item: CanteenIte
     </div>
 );
 
-const Canteen: React.FC = () => {
+const Canteen: React.FC<CanteenProps> = ({ userId }) => {
     const [menu, setMenu] = useState<CanteenItem[]>([]);
     const [cart, setCart] = useState<OrderItem[]>([]);
     const [orders, setOrders] = useState<CanteenOrder[]>([]);
@@ -35,13 +40,15 @@ const Canteen: React.FC = () => {
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const toastTimeoutRef = useRef<number | null>(null);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [orderForPayment, setOrderForPayment] = useState<CanteenOrder | null>(null);
 
     const fetchOrders = () => {
-        api.getMyOrders('u1').then(setOrders);
+        api.getUserOrders(userId).then(setOrders);
     };
 
     useEffect(() => {
-        api.getCanteenMenu().then(data => {
+        api.getMenu().then(data => {
             setMenu(data);
             setIsLoading(false);
         });
@@ -52,7 +59,7 @@ const Canteen: React.FC = () => {
                 clearTimeout(toastTimeoutRef.current);
             }
         };
-    }, []);
+    }, [userId]);
 
     const addToCart = (item: CanteenItem) => {
         setCart(prevCart => {
@@ -93,11 +100,26 @@ const Canteen: React.FC = () => {
     const handlePlaceOrder = async () => {
         if (cart.length === 0) return;
         setIsPlacingOrder(true);
-        await api.placeCanteenOrder('u1', cart);
-        setCart([]);
-        fetchOrders();
-        setIsPlacingOrder(false);
+        try {
+            // The new placeOrder API handles wallet debit
+            const newOrder = await api.placeOrder(userId, cart);
+            setOrderForPayment(newOrder);
+            setIsQrModalOpen(true);
+        } catch (error) {
+            console.error("Failed to place order:", error);
+        } finally {
+            setIsPlacingOrder(false);
+        }
     };
+
+    const handlePaymentComplete = () => {
+        setIsQrModalOpen(false);
+        setOrderForPayment(null);
+        setCart([]);
+        fetchOrders(); // Refresh order list
+        // In a real app, we'd also trigger a wallet balance update in App.tsx
+    };
+
 
     const statusColor = (status: OrderStatus) => {
         switch (status) {
@@ -188,13 +210,22 @@ const Canteen: React.FC = () => {
                                     className="w-full bg-brand-secondary text-white font-bold py-3 rounded-lg mt-6 hover:bg-emerald-600 transition-colors disabled:bg-gray-500 flex items-center justify-center"
                                 >
                                     {isPlacingOrder && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>}
-                                    {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+                                    {isPlacingOrder ? 'Processing...' : 'Place Order & Pay'}
                                 </button>
                             </>
                         )}
                     </div>
                 </div>
             </div>
+            {orderForPayment && (
+                <QRCodeModal
+                    isOpen={isQrModalOpen}
+                    onClose={handlePaymentComplete}
+                    amount={orderForPayment.total}
+                    title="Pay for Canteen Order"
+                    description={`Order #${orderForPayment.token} for ${orderForPayment.items.length} item(s)`}
+                />
+            )}
             {toastMessage && (
                 <div role="status" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-brand-secondary text-white px-6 py-3 rounded-full shadow-lg animate-fade-in z-50">
                     {toastMessage}

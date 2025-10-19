@@ -1,15 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
-import * as api from '../services/mockApi';
+import * as api from '../services/apiService';
 import { User } from '../types';
 import Spinner from '../components/common/Spinner';
 import { UserCircleIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
-const Profile: React.FC = () => {
+interface ProfileProps {
+    userId: string;
+}
+
+const Profile: React.FC<ProfileProps> = ({ userId }) => {
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        api.getCurrentUser().then(setUser);
-    }, []);
+        api.getProfile(userId).then(setUser);
+    }, [userId]);
 
     if (!user) {
         return <Spinner />;
